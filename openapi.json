@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FDA Recalls API",
+    "description": "JSON REST API for the US Food and Drug Administration's official recall feed: food, drug, device, and product recalls, market withdrawals, and safety alerts, filterable by keyword. Available on RapidAPI: https://rapidapi.com/crisp-point-studio-crisp-point-studio-default/api/live-fda-product-food-recalls",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Crisp Point Studio",
+      "url": "https://rapidapi.com/crisp-point-studio-crisp-point-studio-default/api/live-fda-product-food-recalls"
+    }
+  },
+  "servers": [
+    { "url": "https://live-fda-product-food-recalls.p.rapidapi.com", "description": "RapidAPI" }
+  ],
+  "security": [ { "RapidAPIKey": [], "RapidAPIHost": [] } ],
+  "paths": {
+    "/api/recalls": {
+      "get": {
+        "operationId": "getRecalls",
+        "summary": "List recent FDA recall notices",
+        "description": "Returns the most recent FDA recall notices, newest first. The FDA feed carries the 20 most recent notices, so unfiltered requests return up to 20 entries. Pass `search` to keep only titles containing a keyword.",
+        "parameters": [
+          {
+            "name": "search", "in": "query", "required": false,
+            "description": "Case-insensitive keyword match on the recall title, e.g. salmonella, listeria, or a brand name.",
+            "schema": { "type": "string" }, "example": "salmonella"
+          },
+          {
+            "name": "limit", "in": "query", "required": false,
+            "description": "Maximum number of entries to return.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 250, "default": 50 }, "example": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of recall notices, newest first.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Recall" } },
+                "example": [
+                  {
+                    "title": "Oliva LLC Issues Allergy Alert on Undeclared Sesame in Baba Ghanouj, Spicy Baba Ghanouj, and Hummus",
+                    "link": "http://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/oliva-llc-issues-allergy-alert-undeclared-sesame-baba-ghanouj-spicy-baba-ghanouj-and-hummus",
+                    "pubDate": "Fri, 09 Oct 2026 15:08:00 EDT"
+                  }
+                ]
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid RapidAPI key." },
+          "422": { "description": "Invalid query parameter, e.g. limit outside 1–250." },
+          "429": { "description": "Plan quota or rate limit exceeded." },
+          "502": { "description": "The FDA feed was unreachable." }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "RapidAPIKey": { "type": "apiKey", "in": "header", "name": "X-RapidAPI-Key" },
+      "RapidAPIHost": { "type": "apiKey", "in": "header", "name": "X-RapidAPI-Host" }
+    },
+    "schemas": {
+      "Recall": {
+        "type": "object",
+        "required": ["title", "link", "pubDate"],
+        "properties": {
+          "title": { "type": "string", "description": "Recall headline as published by the FDA." },
+          "link": { "type": "string", "format": "uri", "description": "URL of the full notice on fda.gov." },
+          "pubDate": { "type": "string", "description": "Publication time, RFC 2822 format, US Eastern time.", "example": "Fri, 09 Oct 2026 15:08:00 EDT" }
+        }
+      }
+    }
+  }
+}
